@@ -1,0 +1,37 @@
+name: Check Flight Delays
+
+on:
+  schedule:
+    # Runs every 30 minutes between 5:00 and 22:00 UTC (peak flight hours)
+    - cron: '*/30 5-22 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  check-delays:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - run: npm install
+
+      - name: Run delay check (single poll cycle)
+        env:
+          USE_TUI_API: 'true'
+          TUI_API_URL: ${{ secrets.TUI_API_URL }}
+          TUI_API_KEY: ${{ secrets.TUI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          POLLING_INTERVAL_MS: '5000'
+          WARNING_THRESHOLD_MINUTES: '15'
+          CRITICAL_THRESHOLD_MINUTES: '60'
+          COOLDOWN_MINUTES: '0'
+          NOTIFY_ON_RESOLVE: 'false'
+          TRACKED_FLIGHTS: 'TOM1235,TOM2456,TOM7401,TOM9601'
+        run: |
+          timeout 10 npx tsx src/main.ts || true
+        # timeout 10 = run for 10 seconds (enough for 1-2 poll cycles), then exit
