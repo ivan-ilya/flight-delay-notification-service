@@ -113,6 +113,38 @@ npm test
 
 Tests use [Vitest](https://vitest.dev/) and include Zod schema validation tests.
 
+## CI/CD
+
+Two GitHub Actions workflows are included:
+
+- **CI** (`.github/workflows/ci.yml`) — runs TypeScript check + tests on every push/PR
+- **Check Flight Delays** (`.github/workflows/check-delays.yml`) — scheduled every 3 hours (5:00–20:00 UTC), polls TUI API and sends notifications to Telegram
+
+### Switching between real and mock data in CI
+
+In `.github/workflows/check-delays.yml`, change the `USE_TUI_API` value:
+
+```yaml
+# Real TUI data:
+USE_TUI_API: 'true'
+
+# Mock data:
+USE_TUI_API: 'false'
+```
+
+Commit and push — the next scheduled run will use the new setting.
+
+### Required GitHub Secrets
+
+Add these in Settings → Secrets → Repository secrets:
+
+| Secret | Value |
+|--------|-------|
+| `TUI_API_URL` | TUI flights API endpoint |
+| `TUI_API_KEY` | TUI API key |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token from @BotFather |
+| `TELEGRAM_CHAT_ID` | Channel ID (e.g. `@flight_delay_monitor`) |
+
 ## Project Structure
 
 ```

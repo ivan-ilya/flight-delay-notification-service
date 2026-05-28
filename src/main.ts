@@ -44,26 +44,11 @@ const evaluator = new DelayEvaluator({
 
 const eventBus = new EventBus();
 
-// Choose fetch function: TUI real API or mock with fallback
+// Choose fetch function: TUI real API or mock
 const useTuiApi = process.env.USE_TUI_API === "true";
-const tuiFetchFn = createTuiFetchFn();
-const mockFetchFn = createMockFetchFn();
-
 const fetchFn = useTuiApi
-  ? async (flightIds: string[]): Promise<unknown[]> => {
-      try {
-        const result = await tuiFetchFn(flightIds);
-        return result;
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : String(error);
-        if (msg.includes("429") || msg.includes("Limit")) {
-          console.warn("[Main] ⚠️  TUI API rate limited — falling back to MOCK data");
-          return mockFetchFn(flightIds);
-        }
-        throw error;
-      }
-    }
-  : mockFetchFn;
+  ? createTuiFetchFn()
+  : createMockFetchFn();
 
 const poller = new FlightPoller({
   intervalMs: config.pollingIntervalMs,
